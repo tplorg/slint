@@ -8,6 +8,16 @@ This template helps you get started developing a C++ application with Slint as t
 for the user interface. It demonstrates the integration between the `.slint` UI markup and
 C++ code, how to trigger react to callbacks, get and set properties and use basic widgets.
 
+## Look and feel
+
+The UI uses Slint's standard widgets, compiled with the widget style of the target
+platform: Fluent on Windows, Cupertino on macOS, Material on Android, and the Qt style
+on Linux when a Qt installation is found (Fluent otherwise). Navigation is the std-widgets
+`TabWidget` - a tab list on the left on wide windows, a tab bar on top on narrow ones -
+so every part of the interface is painted by the platform style. Colors and the light or
+dark mode follow the operating system automatically. `CMakeLists.txt` picks the style
+per platform; pass `-DSLINT_STYLE=<style>` to pin one style everywhere instead.
+
 ## Prerequisites
 
 In order to use this template and build a C++ application, you need to install a few tools:

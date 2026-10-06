@@ -1,0 +1,29 @@
+// The preferences that the C++ side drives, see src/main.cpp.
+//
+// They live in their own file so that every page can use them; app-window.slint
+// re-exports this global to make it part of the generated C++ API.
+
+export global AppSettings {
+    // 0 = follow system, 1 = light, 2 = dark.
+    // The order must match `kThemeOptions` in src/main.cpp.
+    in-out property <int> theme-mode-index: 0;
+
+    // Index into `language-names` / `language-codes`.
+    in-out property <int> language-index: 0;
+
+    // Closing the window hides it to the system tray instead of quitting.
+    in-out property <bool> background-mode: true;
+
+    // Add a language by adding its display name here and the matching locale
+    // code below, plus a `translations/<code>/LC_MESSAGES/app.po` file.
+    in property <[string]> language-names: [@tr("Follow system"), "English", "简体中文"];
+    in property <[string]> language-codes: ["", "en", "zh_CN"];
+
+    callback theme-mode-changed();
+    callback language-changed(string);
+    callback background-mode-changed(bool);
+
+    changed theme-mode-index => { theme-mode-changed(); }
+    changed language-index => { language-changed(language-codes[language-index]); }
+    changed background-mode => { background-mode-changed(background-mode); }
+}

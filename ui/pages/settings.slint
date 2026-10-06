@@ -1,0 +1,64 @@
+// The Settings page: the preferences C++ persists, see src/main.cpp.
+//
+// The controls are the platform style's own: a combo box and a switch, painted
+// by whichever style this build targets.
+
+import { ScrollView, ComboBox, Switch } from "std-widgets.slint";
+import { AppSettings } from "../globals/app-settings.slint";
+import { PageHeader } from "../components/common.slint";
+
+// A settings line: a label on the left, its control on the right.
+component SettingRow inherits HorizontalLayout {
+    in property <string> title;
+
+    alignment: space-between;
+    cross-axis-alignment: center;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    spacing: 16px;
+
+    Text {
+        text: root.title;
+        font-size: 0.95rem;
+    }
+
+    @children
+}
+
+export component SettingsPage inherits ScrollView {
+    VerticalLayout {
+        alignment: start;
+        padding: 16px;
+        spacing: 16px;
+
+        PageHeader {
+            title: @tr("Settings");
+            subtitle: @tr("Both the theme and the language can follow the operating system.");
+            has-subtitle: true;
+        }
+
+        // The theme choices, in the order of `kThemeOptions` in src/main.cpp.
+        SettingRow {
+            title: @tr("Theme");
+
+            ComboBox {
+                model: [@tr("Follow system"), @tr("Light"), @tr("Dark")];
+                current-index <=> AppSettings.theme-mode-index;
+            }
+        }
+
+        SettingRow {
+            title: @tr("Language");
+
+            ComboBox {
+                model: AppSettings.language-names;
+                current-index <=> AppSettings.language-index;
+            }
+        }
+
+        Switch {
+            text: @tr("Run in background");
+            checked <=> AppSettings.background-mode;
+        }
+    }
+}

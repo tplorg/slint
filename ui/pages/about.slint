@@ -1,0 +1,31 @@
+// The About page: what this template is.
+
+import { ScrollView, Palette } from "std-widgets.slint";
+import { PageHeader } from "../components/common.slint";
+
+export component AboutPage inherits ScrollView {
+    VerticalLayout {
+        alignment: start;
+        padding: 16px;
+        spacing: 20px;
+
+        PageHeader {
+            title: @tr("About");
+            subtitle: @tr("A starting point for desktop and mobile applications built with Slint, CMake and C++20.");
+            has-subtitle: true;
+        }
+
+        Text {
+            text: @tr("Released under the MIT license.");
+            wrap: word-wrap;
+            font-size: 0.95rem;
+        }
+
+        Text {
+            text: @tr("Built with Slint, CMake and C++20.");
+            wrap: word-wrap;
+            font-size: 0.9rem;
+            color: Palette.alternate-foreground;
+        }
+    }
+}

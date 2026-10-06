@@ -1,0 +1,4 @@
+// The icon Windows shows for the executable file itself - in Explorer, in the
+// task switcher and before the window icon above is applied. Rendered from
+// assets/images/slint.svg, because a Windows resource cannot hold SVG.
+IDI_ICON1 ICON "app.ico"

@@ -1,17 +1,138 @@
-import { Button, VerticalBox } from "std-widgets.slint";
+// Entry point of the UI: the application shell.
+//
+// The look of the application is the platform's own: the widget style is
+// chosen for the target in CMakeLists.txt - Fluent on Windows, Cupertino on
+// macOS, Material on Android, Qt on Linux when available - and the colors
+// follow the operating system, see src/main.cpp. Navigation is therefore the
+// std-widgets `TabWidget`, which every style paints in its own idiom: a tab
+// list on the left on wide windows, a tab bar across the top on narrow ones.
+// Everything else lives next to this file:
+//
+//   globals/app-settings.slint      the preferences C++ drives
+//   components/common.slint         the page header the pages are built from
+//   pages/home.slint, ...           one file per page, named like its tab
 
-export component AppWindow inherits Window {
-    in-out property<int> counter: 42;
+import { Palette, TabWidget } from "std-widgets.slint";
+import { AppSettings } from "globals/app-settings.slint";
+import { HomePage } from "pages/home.slint";
+import { SettingsPage } from "pages/settings.slint";
+import { AboutPage } from "pages/about.slint";
+
+// Re-exported so that they are part of the generated C++ API and reachable as
+// `ui->global<AppSettings>()` and `ui->global<Palette>()`. Only globals that
+// are exported (or re-exported) from the main .slint file are exported to C++.
+export { AppSettings }
+export { Palette }
+
+component AppShell inherits Rectangle {
+    in-out property <int> current-page: 0;
+    in-out property <int> counter: 42;
     callback request-increase-value();
-    VerticalBox {
-        Text {
-            text: "Counter: \{root.counter}";
-        }
-        Button {
-            text: "Increase value";
-            clicked => {
-                root.request-increase-value();
+
+    width: 100%;
+    height: 100%;
+
+    // `TabWidget.orientation` must be a constant, so each side of the
+    // breakpoint is its own TabWidget; the two share the current page and the
+    // counter through this component, and only one of them exists at a time.
+    if (root.width >= 760px) : TabWidget {
+        orientation: Orientation.vertical;
+        current-index <=> root.current-page;
+
+        Tab {
+            title: @tr("Home");
+            HomePage {
+                counter <=> root.counter;
+                request-increase-value => { root.request-increase-value(); }
             }
         }
-     }
+
+        Tab {
+            title: @tr("Settings");
+            SettingsPage { }
+        }
+
+        Tab {
+            title: @tr("About");
+            AboutPage { }
+        }
+    }
+
+    if (root.width < 760px) : TabWidget {
+        orientation: Orientation.horizontal;
+        current-index <=> root.current-page;
+
+        Tab {
+            title: @tr("Home");
+            HomePage {
+                counter <=> root.counter;
+                request-increase-value => { root.request-increase-value(); }
+            }
+        }
+
+        Tab {
+            title: @tr("Settings");
+            SettingsPage { }
+        }
+
+        Tab {
+            title: @tr("About");
+            AboutPage { }
+        }
+    }
+}
+
+export component AppWindow inherits Window {
+    title: @tr("Slint multi-platform template");
+    // The window and taskbar icon; assets/windows/app.ico is the same picture
+    // for the executable file, which cannot read SVG.
+    icon: @image-url("../assets/images/slint.svg");
+    preferred-width: 900px;
+    preferred-height: 600px;
+    min-width: 360px;
+    min-height: 320px;
+
+    // Which tab is shown.
+    in-out property <int> current-page: 0;
+
+    // Example of state and a callback shared with C++, see src/main.cpp.
+    in-out property <int> counter: 42;
+    callback request-increase-value();
+
+    AppShell {
+        current-page <=> root.current-page;
+        counter <=> root.counter;
+        request-increase-value => { root.request-increase-value(); }
+    }
+}
+
+// The system tray icon of the background mode: it is there while the application
+// runs with that mode on, closing the window hides the application to it, and it
+// either brings the window back or quits. src/main.cpp creates it before the
+// event loop starts, because the native icon is registered as the component is
+// created and only an icon visible then keeps the loop alive once the window is
+// hidden.
+export component AppTray inherits SystemTrayIcon {
+    icon: @image-url("../assets/images/slint.svg");
+    title: @tr("Slint multi-platform template");
+    tooltip: @tr("Slint multi-platform template");
+
+    callback show-window();
+    callback quit();
+
+    clicked => { root.show-window(); }
+
+    Menu {
+        MenuItem {
+            title: @tr("Show window");
+            activated => { root.show-window(); }
+        }
+
+        MenuSeparator { }
+
+        MenuItem {
+            title: @tr("Quit");
+            activated => { root.quit(); }
+        }
+    }
 }

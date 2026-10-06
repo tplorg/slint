@@ -1,0 +1,36 @@
+// Building blocks shared by the pages.
+//
+// Every control a page needs - buttons, combo boxes, switches, group boxes -
+// comes from `std-widgets.slint` and is painted by the platform style; only
+// the page-header typography, which no style provides, lives here.
+
+import { Palette } from "std-widgets.slint";
+
+component PageTitle inherits Text {
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+component PageSubtitle inherits Text {
+    font-size: 0.95rem;
+    color: Palette.alternate-foreground;
+    wrap: word-wrap;
+}
+
+// A stacked heading: a title with an optional subtitle below it.
+export component PageHeader inherits VerticalLayout {
+    in property <string> title;
+    in property <string> subtitle: "";
+    in property <bool> has-subtitle: false;
+
+    alignment: start;
+    spacing: 4px;
+
+    PageTitle {
+        text: root.title;
+    }
+
+    if root.has-subtitle : PageSubtitle {
+        text: root.subtitle;
+    }
+}
