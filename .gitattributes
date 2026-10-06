@@ -1,0 +1,13 @@
+# Keep one line ending per file in the repository, and check out LF everywhere.
+* text=auto eol=lf
+
+# Windows-only scripts need CRLF to run reliably.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Files that must never be touched by text conversion.
+*.png binary
+*.ico binary
+*.icns binary
+*.jar binary
+*.p12 binary

@@ -37,5 +37,11 @@
 # CMake build directory
 build
 
+# User-specific CMake presets
+CMakeUserPresets.json
+
 # Gradle / Android build outputs
 .gradle
+
+# Scratch directory for throw-away scripts and files
+.tmp
