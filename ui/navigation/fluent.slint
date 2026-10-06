@@ -1,0 +1,140 @@
+// Windows navigation: the Fluent NavigationView.
+//
+// All four files in ui/navigation/ export `AppNav` with the same properties,
+// and CMakeLists.txt points the "@nav" library path at the one that matches the
+// widget style, so a build contains exactly one of them. ui/app-window.slint
+// positions the panel from `horizontal`, `panel-width` and `panel-height`, and
+// fills in `destinations`.
+//
+// The colors come from `Palette`, so the panel follows the operating system
+// light or dark mode like the widgets do.
+
+import { Palette } from "std-widgets.slint";
+import { NavigationDestination } from "destinations.slint";
+
+// The Fluent subtle state colors of a list item. The standard widget palette
+// has no hover or selected role, so these are the platform's own values.
+global FluentSubtle {
+    in property <bool> dark: Palette.color-scheme == ColorScheme.dark;
+    out property <brush> hovered: dark ? #FFFFFF0F : #00000009;
+    out property <brush> pressed: dark ? #FFFFFF12 : #00000006;
+    out property <brush> selected: dark ? #FFFFFF14 : #0000000F;
+    out property <brush> divider: dark ? #FFFFFF15 : #00000012;
+}
+
+// One destination: the glyph and the title, with the selection bar of the
+// active one. 40px high in the rail, as wide as there is room in the bar.
+component FluentNavItem inherits Rectangle {
+    in property <NavigationDestination> destination;
+    in property <bool> selected: false;
+    in property <bool> horizontal: false;
+    callback clicked();
+
+    Rectangle {
+        border-radius: 4px;
+        background: touch.pressed ? FluentSubtle.pressed
+                : root.selected ? FluentSubtle.selected
+                : touch.has-hover ? FluentSubtle.hovered
+                : transparent;
+    }
+
+    if !root.horizontal && root.selected : Rectangle {
+        x: 0; y: (parent.height - 16px) / 2;
+        width: 3px; height: 16px; border-radius: 1.5px;
+        background: Palette.accent-background;
+    }
+
+    if root.horizontal && root.selected : Rectangle {
+        x: (parent.width - 16px) / 2; y: 2px;
+        width: 16px; height: 3px; border-radius: 1.5px;
+        background: Palette.accent-background;
+    }
+
+    // Both modes place their parts by hand: a layout pins an item of fixed size
+    // to the start of its cell, which leaves the glyph above the title instead
+    // of beside or under it.
+    if !root.horizontal : Rectangle {
+        Image {
+            source: root.destination.icon;
+            width: 16px; height: 16px;
+            x: 11px; y: (parent.height - self.height) / 2;
+            colorize: Palette.foreground;
+        }
+        Text {
+            x: 39px; width: parent.width - 51px;
+            y: (parent.height - self.height) / 2;
+            text: root.destination.title;
+            font-size: 14px;
+            color: Palette.foreground;
+            overflow: elide;
+        }
+    }
+
+    if root.horizontal : Rectangle {
+        label := Text {
+            x: 0; width: parent.width; y: parent.height - self.height - 5px;
+            text: root.destination.title;
+            font-size: 10px;
+            horizontal-alignment: center;
+            overflow: elide;
+            color: root.selected ? Palette.accent-background : Palette.foreground;
+        }
+        Image {
+            source: root.destination.icon;
+            width: 16px; height: 16px;
+            x: (parent.width - self.width) / 2; y: label.y - self.height - 3px;
+            colorize: root.selected ? Palette.accent-background : Palette.foreground;
+        }
+    }
+
+    touch := TouchArea { clicked => { root.clicked(); } }
+}
+
+export component AppNav inherits Rectangle {
+    in-out property <int> current-index: 0;
+    in property <[NavigationDestination]> destinations;
+    in property <bool> wide: true;
+
+    out property <bool> horizontal: !root.wide;
+    out property <length> panel-width: 240px;
+    out property <length> panel-height: 48px;
+
+    background: Palette.alternate-background;
+
+    // NavigationView: destinations at the top of the pane, the rest of the
+    // pane left empty.
+    if !root.horizontal : VerticalLayout {
+        padding-left: 3px; padding-right: 3px; padding-top: 4px; spacing: 1px;
+        for item[index] in root.destinations : FluentNavItem {
+            preferred-height: 40px;
+            vertical-stretch: 0;
+            destination: item;
+            selected: root.current-index == index;
+            clicked => { root.current-index = index; }
+        }
+        Rectangle { vertical-stretch: 1; }
+    }
+
+    // Bottom navigation for a narrow window: the destinations share the width.
+    // They are placed by hand because a HorizontalLayout leaves an item whose
+    // content has a fixed width at its preferred width instead of stretching it.
+    if root.horizontal : Rectangle {
+        for item[index] in root.destinations : FluentNavItem {
+            x: parent.width * index / root.destinations.length;
+            y: 0;
+            width: parent.width / root.destinations.length;
+            height: parent.height;
+            destination: item;
+            horizontal: true;
+            selected: root.current-index == index;
+            clicked => { root.current-index = index; }
+        }
+    }
+
+    Rectangle {
+        background: FluentSubtle.divider;
+        x: root.horizontal ? 0 : parent.width - 1px; y: 0;
+        width: root.horizontal ? parent.width : 1px;
+        height: root.horizontal ? 1px : parent.height;
+    }
+}

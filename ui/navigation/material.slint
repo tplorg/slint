@@ -1,0 +1,97 @@
+// Android navigation: the Material 3 navigation rail and navigation bar.
+//
+// All four files in ui/navigation/ export `AppNav` with the same properties,
+// and CMakeLists.txt points the "@nav" library path at the one that matches the
+// widget style, so a build contains exactly one of them. ui/app-window.slint
+// positions the panel from `horizontal`, `panel-width` and `panel-height`, and
+// fills in `destinations`.
+//
+// In the Material widget style `Palette.control-background` is the secondary
+// container color, which is what the active indicator of these two components
+// uses, and `control-foreground` is the color of the glyph and label on it.
+
+import { Palette } from "std-widgets.slint";
+import { NavigationDestination } from "destinations.slint";
+
+// One destination: the pill of the active one behind a 24px glyph, the label
+// under it, in a 56px high slot in the rail and a full-height slot in the bar.
+// The parts are placed by hand: the pill has a fixed width, and the rail and
+// the bar differ only in how tall the slot is.
+component MaterialNavItem inherits Rectangle {
+    in property <NavigationDestination> destination;
+    in property <bool> selected: false;
+    in property <bool> horizontal: false;
+    callback clicked();
+
+    property <brush> content-color: root.selected ? Palette.control-foreground
+            : Palette.foreground.with-alpha(0.6);
+
+    pill := Rectangle {
+        width: root.horizontal ? 64px : 56px;
+        height: 32px;
+        border-radius: 16px;
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2 - 12px;
+        background: root.selected ? Palette.control-background : transparent;
+
+        Image {
+            width: 24px; height: 24px;
+            x: (parent.width - self.width) / 2;
+            y: (parent.height - self.height) / 2;
+            source: root.destination.icon;
+            colorize: root.content-color;
+        }
+    }
+
+    Text {
+        x: 0; width: parent.width;
+        y: pill.y + pill.height + 4px;
+        text: root.destination.title;
+        font-size: 12px;
+        horizontal-alignment: center;
+        overflow: elide;
+        color: root.content-color;
+    }
+
+    touch := TouchArea { clicked => { root.clicked(); } }
+}
+
+export component AppNav inherits Rectangle {
+    in-out property <int> current-index: 0;
+    in property <[NavigationDestination]> destinations;
+    in property <bool> wide: true;
+
+    out property <bool> horizontal: !root.wide;
+    out property <length> panel-width: 80px;
+    out property <length> panel-height: 80px;
+
+    background: Palette.alternate-background;
+
+    if !root.horizontal : VerticalLayout {
+        padding-top: 8px; spacing: 4px;
+        for item[index] in root.destinations : MaterialNavItem {
+            preferred-height: 56px;
+            vertical-stretch: 0;
+            destination: item;
+            selected: root.current-index == index;
+            clicked => { root.current-index = index; }
+        }
+        Rectangle { vertical-stretch: 1; }
+    }
+
+    // The destinations share the width of the bar. They are placed by hand
+    // because a HorizontalLayout leaves an item whose content has a fixed
+    // width at its preferred width instead of stretching it.
+    if root.horizontal : Rectangle {
+        for item[index] in root.destinations : MaterialNavItem {
+            x: parent.width * index / root.destinations.length;
+            y: 0;
+            width: parent.width / root.destinations.length;
+            height: parent.height;
+            destination: item;
+            horizontal: true;
+            selected: root.current-index == index;
+            clicked => { root.current-index = index; }
+        }
+    }
+}

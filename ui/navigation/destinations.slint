@@ -1,0 +1,8 @@
+// One entry of the navigation: the title and the glyph of a destination.
+// ui/app-window.slint owns the list, so the translations stay in its context
+// and the navigation component in ui/navigation/ stays destination-agnostic.
+
+export struct NavigationDestination {
+    title: string,
+    icon: image,
+}

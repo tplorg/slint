@@ -1,0 +1,8 @@
+{
+    // CMakeLists.txt compiles the navigation panel of the widget style of the
+    // target as the "@nav" library; point this at the same
+    // ui/navigation/<style>.slint to keep the language server in sync.
+    "slint.libraryPaths": {
+        "nav": "./ui/navigation/fluent.slint"
+    }
+}

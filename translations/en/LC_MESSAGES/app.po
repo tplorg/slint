@@ -1,0 +1,134 @@
+# English translation for the Slint C++ template.
+#
+# The strings in the .slint files are already written in English, so every entry
+# below repeats its source text. Keeping them explicit has two advantages: the
+# English wording can be changed without touching the UI code, and translators
+# of other languages get a complete file to copy.
+#
+# The directory that contains LC_MESSAGES is the locale, "en" here; the file
+# name is the translation domain set in CMakeLists.txt ("app").
+#
+# Slint uses the name of the enclosing component or global as the default
+# translation context, so every entry below needs a msgctxt. Without it the
+# string is silently left untranslated. Set the
+# SLINT_NO_DEFAULT_TRANSLATION_CONTEXT target property in CMakeLists.txt to drop
+# contexts altogether.
+msgid ""
+msgstr ""
+"Project-Id-Version: my_application\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+# --- ui/app-settings.slint ---------------------------------------------------
+
+# The language ComboBox, index 0 of `language-names`.
+msgctxt "AppSettings"
+msgid "Follow system"
+msgstr "Follow system"
+
+# --- ui/app-window.slint -----------------------------------------------------
+
+# The window title.
+msgctxt "AppWindow"
+msgid "Slint multi-platform template"
+msgstr "Slint multi-platform template"
+
+# The system tray icon (AppTray) and its context menu.
+msgctxt "AppTray"
+msgid "Slint multi-platform template"
+msgstr "Slint multi-platform template"
+
+msgctxt "AppTray"
+msgid "Show window"
+msgstr "Show window"
+
+msgctxt "AppTray"
+msgid "Quit"
+msgstr "Quit"
+
+# --- ui/app-window.slint (AppShell) ------------------------------------------
+
+# Titles of the tabs, in both `TabWidget`s.
+msgctxt "AppShell"
+msgid "Home"
+msgstr "Home"
+
+msgctxt "AppShell"
+msgid "Settings"
+msgstr "Settings"
+
+msgctxt "AppShell"
+msgid "About"
+msgstr "About"
+
+# --- ui/pages.slint ----------------------------------------------------------
+
+msgctxt "HomePage"
+msgid "Home"
+msgstr "Home"
+
+msgctxt "HomePage"
+msgid "Every page is a component; the navigation switches between them."
+msgstr "Every page is a component; the navigation switches between them."
+
+msgctxt "HomePage"
+msgid "Counter"
+msgstr "Counter"
+
+msgctxt "HomePage"
+msgid "Increase value"
+msgstr "Increase value"
+
+msgctxt "SettingsPage"
+msgid "Settings"
+msgstr "Settings"
+
+msgctxt "SettingsPage"
+msgid "Theme"
+msgstr "Theme"
+
+msgctxt "SettingsPage"
+msgid "Follow system"
+msgstr "Follow system"
+
+msgctxt "SettingsPage"
+msgid "Light"
+msgstr "Light"
+
+msgctxt "SettingsPage"
+msgid "Dark"
+msgstr "Dark"
+
+msgctxt "SettingsPage"
+msgid "Language"
+msgstr "Language"
+
+msgctxt "SettingsPage"
+msgid "Both the theme and the language can follow the operating system."
+msgstr "Both the theme and the language can follow the operating system."
+
+msgctxt "SettingsPage"
+msgid "Run in background"
+msgstr "Run in background"
+
+msgctxt "AboutPage"
+msgid "About"
+msgstr "About"
+
+msgctxt "AboutPage"
+msgid "A starting point for desktop and mobile applications built with Slint, CMake and C++20."
+msgstr "A starting point for desktop and mobile applications built with Slint, CMake and C++20."
+
+msgctxt "AboutPage"
+msgid "Released under the MIT license."
+msgstr "Released under the MIT license."
+msgctxt "AboutPage"
+msgid "Built with Slint, CMake and C++20."
+msgstr "Built with Slint, CMake and C++20."

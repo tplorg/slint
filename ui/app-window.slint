@@ -1,17 +1,141 @@
-import { Button, VerticalBox } from "std-widgets.slint";
+// Entry point of the UI: the application shell.
+//
+// The look of the application is the platform's own. CMakeLists.txt picks the
+// widget style for the target - Fluent on Windows, Cupertino on macOS and iOS,
+// Material on Android, Qt on Linux when available - and the widget colors and
+// the light or dark mode then follow the operating system, see src/main.cpp.
+// Navigation is picked the same way: ui/navigation/<style>.slint is imported
+// here as "@nav", so each platform gets its own navigation idiom - a Fluent
+// rail, a macOS sidebar, a Material rail or bar, a Qt item list - while this
+// file only says which destination is active and where the panel goes.
+// Everything else lives next to this file:
+//
+//   globals/app-settings.slint      the preferences C++ drives
+//   components/common.slint         the page header the pages are built from
+//   navigation/*.slint              the panel, one file per widget style
+//   pages/home.slint, ...           one file per destination
+
+import { Palette } from "std-widgets.slint";
+import { AppSettings } from "globals/app-settings.slint";
+import { NavigationDestination } from "navigation/destinations.slint";
+import { AppNav } from "@nav";
+import { HomePage } from "pages/home.slint";
+import { SettingsPage } from "pages/settings.slint";
+import { AboutPage } from "pages/about.slint";
+
+// Re-exported so that they are part of the generated C++ API and reachable as
+// `ui->global<AppSettings>()` and `ui->global<Palette>()`. Only globals that
+// are exported (or re-exported) from the main .slint file are exported to C++.
+export { AppSettings }
+export { Palette }
+
+component AppShell inherits Rectangle {
+    in-out property <int> current-page: 0;
+    in-out property <int> counter: 42;
+    callback request-increase-value();
+
+    width: 100%;
+    height: 100%;
+
+    // The destinations of the panel, in the order they are shown.
+    property <[NavigationDestination]> destinations: [
+        { title: @tr("Home"), icon: @image-url("../assets/images/home.svg") },
+        { title: @tr("Settings"), icon: @image-url("../assets/images/settings.svg") },
+        { title: @tr("About"), icon: @image-url("../assets/images/info.svg") },
+    ];
+
+    // A window this narrow is a phone or a small side-by-side window, where
+    // the platforms put their navigation at the bottom instead of at the side.
+    // The panel itself decides whether it follows that rule.
+    property <bool> wide: root.width >= 760px;
+
+    nav := AppNav {
+        wide: root.wide;
+        destinations: root.destinations;
+        current-index <=> root.current-page;
+
+        x: 0;
+        y: nav.horizontal ? root.height - nav.panel-height : 0;
+        width: nav.horizontal ? root.width : nav.panel-width;
+        height: nav.horizontal ? nav.panel-height : root.height;
+    }
+
+    // The page of the active destination, next to or above the panel.
+    Rectangle {
+        x: nav.horizontal ? 0 : nav.panel-width;
+        y: 0;
+        width: root.width - (nav.horizontal ? 0 : nav.panel-width);
+        height: root.height - (nav.horizontal ? nav.panel-height : 0);
+        clip: true;
+        background: Palette.background;
+
+        if root.current-page == 0 : HomePage {
+            width: 100%; height: 100%;
+            counter <=> root.counter;
+            request-increase-value => { root.request-increase-value(); }
+        }
+
+        if root.current-page == 1 : SettingsPage {
+            width: 100%; height: 100%;
+        }
+
+        if root.current-page == 2 : AboutPage {
+            width: 100%; height: 100%;
+        }
+    }
+}
 
 export component AppWindow inherits Window {
-    in-out property<int> counter: 42;
+    title: @tr("Slint multi-platform template");
+    // The window and taskbar icon; assets/windows/app.ico is the same picture
+    // for the executable file, which cannot read SVG.
+    icon: @image-url("../assets/images/slint.svg");
+    preferred-width: 900px;
+    preferred-height: 600px;
+    min-width: 360px;
+    min-height: 320px;
+
+    // Which destination is shown.
+    in-out property <int> current-page: 0;
+
+    // Example of state and a callback shared with C++, see src/main.cpp.
+    in-out property <int> counter: 42;
     callback request-increase-value();
-    VerticalBox {
-        Text {
-            text: "Counter: \{root.counter}";
+
+    AppShell {
+        current-page <=> root.current-page;
+        counter <=> root.counter;
+        request-increase-value => { root.request-increase-value(); }
+    }
+}
+
+// The system tray icon of the background mode: it is there while the application
+// runs with that mode on, closing the window hides the application to it, and it
+// either brings the window back or quits. src/main.cpp creates it before the
+// event loop starts, because the native icon is registered as the component is
+// created and only an icon visible then keeps the loop alive once the window is
+// hidden.
+export component AppTray inherits SystemTrayIcon {
+    icon: @image-url("../assets/images/slint.svg");
+    title: @tr("Slint multi-platform template");
+    tooltip: @tr("Slint multi-platform template");
+
+    callback show-window();
+    callback quit();
+
+    clicked => { root.show-window(); }
+
+    Menu {
+        MenuItem {
+            title: @tr("Show window");
+            activated => { root.show-window(); }
         }
-        Button {
-            text: "Increase value";
-            clicked => {
-                root.request-increase-value();
-            }
+
+        MenuSeparator { }
+
+        MenuItem {
+            title: @tr("Quit");
+            activated => { root.quit(); }
         }
-     }
+    }
 }

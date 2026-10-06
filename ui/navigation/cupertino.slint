@@ -1,0 +1,123 @@
+// Apple navigation: the macOS sidebar, and the iOS tab bar on a narrow window.
+//
+// All four files in ui/navigation/ export `AppNav` with the same properties,
+// and CMakeLists.txt points the "@nav" library path at the one that matches the
+// widget style, so a build contains exactly one of them. ui/app-window.slint
+// positions the panel from `horizontal`, `panel-width` and `panel-height`, and
+// fills in `destinations`.
+
+import { Palette } from "std-widgets.slint";
+import { NavigationDestination } from "destinations.slint";
+
+// The gray fill behind a sidebar row while the pointer is over it.
+global CupertinoHover {
+    in property <bool> dark: Palette.color-scheme == ColorScheme.dark;
+    out property <brush> hovered: dark ? #FFFFFF14 : #0000000A;
+}
+
+// One destination: 28px high with a 6px corner radius in the sidebar, glyph
+// above title in the tab bar.
+component CupertinoNavItem inherits Rectangle {
+    in property <NavigationDestination> destination;
+    in property <bool> selected: false;
+    in property <bool> horizontal: false;
+    callback clicked();
+
+    // The accent fill is the sidebar's selection; a tab bar only tints the
+    // glyph and the title of the selected destination.
+    Rectangle {
+        border-radius: 6px;
+        background: root.horizontal ? touch.has-hover ? CupertinoHover.hovered : transparent
+                : touch.pressed ? Palette.accent-background.with-alpha(0.6)
+                : root.selected ? Palette.accent-background
+                : touch.has-hover ? CupertinoHover.hovered
+                : transparent;
+    }
+
+    // Both modes place their parts by hand: a layout pins an item of fixed size
+    // to the start of its cell, which leaves the glyph above the title instead
+    // of beside or under it.
+    if !root.horizontal : Rectangle {
+        Image {
+            source: root.destination.icon;
+            width: 16px; height: 16px;
+            x: 8px; y: (parent.height - self.height) / 2;
+            colorize: root.selected ? Palette.accent-foreground : Palette.foreground;
+        }
+        Text {
+            x: 30px; width: parent.width - 38px;
+            y: (parent.height - self.height) / 2;
+            text: root.destination.title;
+            font-size: 13px;
+            overflow: elide;
+            color: root.selected ? Palette.accent-foreground : Palette.foreground;
+        }
+    }
+
+    if root.horizontal : Rectangle {
+        label := Text {
+            x: 0; width: parent.width; y: parent.height - self.height - 5px;
+            text: root.destination.title;
+            font-size: 10px;
+            horizontal-alignment: center;
+            overflow: elide;
+            color: root.selected ? Palette.accent-background : Palette.alternate-foreground;
+        }
+        Image {
+            source: root.destination.icon;
+            width: 24px; height: 24px;
+            x: (parent.width - self.width) / 2; y: label.y - self.height - 2px;
+            colorize: root.selected ? Palette.accent-background : Palette.alternate-foreground;
+        }
+    }
+
+    touch := TouchArea { clicked => { root.clicked(); } }
+}
+
+export component AppNav inherits Rectangle {
+    in-out property <int> current-index: 0;
+    in property <[NavigationDestination]> destinations;
+    in property <bool> wide: true;
+
+    out property <bool> horizontal: !root.wide;
+    out property <length> panel-width: root.wide ? 220px : 180px;
+    out property <length> panel-height: 49px;
+
+    background: Palette.alternate-background;
+
+    // Sidebar: rows of 28px, grouped at the top with 2px between them.
+    if !root.horizontal : VerticalLayout {
+        padding-left: 8px; padding-right: 8px; padding-top: 10px; spacing: 2px;
+        for item[index] in root.destinations : CupertinoNavItem {
+            preferred-height: 28px;
+            vertical-stretch: 0;
+            destination: item;
+            selected: root.current-index == index;
+            clicked => { root.current-index = index; }
+        }
+        Rectangle { vertical-stretch: 1; }
+    }
+
+    // Bottom navigation for a narrow window: the destinations share the width.
+    // They are placed by hand because a HorizontalLayout leaves an item whose
+    // content has a fixed width at its preferred width instead of stretching it.
+    if root.horizontal : Rectangle {
+        for item[index] in root.destinations : CupertinoNavItem {
+            x: parent.width * index / root.destinations.length;
+            y: 0;
+            width: parent.width / root.destinations.length;
+            height: parent.height;
+            destination: item;
+            horizontal: true;
+            selected: root.current-index == index;
+            clicked => { root.current-index = index; }
+        }
+    }
+
+    Rectangle {
+        background: Palette.border;
+        x: root.horizontal ? 0 : parent.width - 1px; y: 0;
+        width: root.horizontal ? parent.width : 1px;
+        height: root.horizontal ? 1px : parent.height;
+    }
+}

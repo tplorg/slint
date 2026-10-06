@@ -1,0 +1,88 @@
+// Linux navigation: the item view of a Qt application.
+//
+// All four files in ui/navigation/ export `AppNav` with the same properties,
+// and CMakeLists.txt points the "@nav" library path at the one that matches the
+// widget style, so a build contains exactly one of them. ui/app-window.slint
+// positions the panel from `horizontal`, `panel-width` and `panel-height`, and
+// fills in `destinations`.
+//
+// Qt has no bottom bar, so this panel stays at the side: a list of rows with
+// titles while there is room for them, and an icon row when the window is
+// narrow. `Palette.selection-background` is the Qt highlight role, which is
+// what a selected row of a QListWidget uses, and the text size is the Qt
+// application font because no font size is set here.
+
+import { Palette } from "std-widgets.slint";
+import { NavigationDestination } from "destinations.slint";
+
+component QtNavItem inherits Rectangle {
+    in property <NavigationDestination> destination;
+    in property <bool> selected: false;
+    in property <bool> compact: false;
+    callback clicked();
+
+    Rectangle {
+        background: root.selected ? Palette.selection-background : transparent;
+    }
+
+    // Both modes place their parts by hand: a layout pins an item of fixed size
+    // to the start of its cell, which leaves the glyph off the title.
+    if !root.compact : Rectangle {
+        Image {
+            source: root.destination.icon;
+            width: 16px; height: 16px;
+            x: 6px; y: (parent.height - self.height) / 2;
+            colorize: root.selected ? Palette.selection-foreground : Palette.foreground;
+        }
+        Text {
+            x: 28px; width: parent.width - 34px;
+            y: (parent.height - self.height) / 2;
+            text: root.destination.title;
+            overflow: elide;
+            color: root.selected ? Palette.selection-foreground : Palette.foreground;
+        }
+    }
+
+    if root.compact : Rectangle {
+        Image {
+            source: root.destination.icon;
+            width: 22px; height: 22px;
+            x: (parent.width - self.width) / 2; y: (parent.height - self.height) / 2;
+            colorize: root.selected ? Palette.selection-foreground : Palette.foreground;
+        }
+    }
+
+    touch := TouchArea { clicked => { root.clicked(); } }
+}
+
+export component AppNav inherits Rectangle {
+    in-out property <int> current-index: 0;
+    in property <[NavigationDestination]> destinations;
+    in property <bool> wide: true;
+
+    // Never a bar at the bottom, so ui/app-window.slint keeps it at the side.
+    out property <bool> horizontal: false;
+    out property <length> panel-width: root.wide ? 200px : 56px;
+    out property <length> panel-height: 0px;
+
+    background: Palette.alternate-background;
+
+    VerticalLayout {
+        padding-top: 4px; padding-bottom: 4px; spacing: 1px;
+        for item[index] in root.destinations : QtNavItem {
+            preferred-height: root.wide ? 28px : 40px;
+            vertical-stretch: 0;
+            destination: item;
+            compact: !root.wide;
+            selected: root.current-index == index;
+            clicked => { root.current-index = index; }
+        }
+        Rectangle { vertical-stretch: 1; }
+    }
+
+    Rectangle {
+        x: parent.width - 1px; y: 0;
+        width: 1px; height: parent.height;
+        background: Palette.border;
+    }
+}

@@ -43,5 +43,6 @@ CMakeUserPresets.json
 # Gradle / Android build outputs
 .gradle
 
-# Scratch directory for throw-away scripts and files
+# IDE / AI
+.arts/
 .tmp
